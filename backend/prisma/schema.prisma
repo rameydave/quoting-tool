@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  estimator
+  pricing_admin
+  admin
+}
+
+enum QuoteStatus {
+  Draft
+  Finalized
+  Archived
+}
+
+enum QuoteRowType {
+  db_part
+  manual_part
+  note
+}
+
+enum ExportType {
+  pdf
+  po_csv
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  role         UserRole
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Part {
+  id              String   @id @default(uuid()) @db.Uuid
+  partNumber      String   @unique @map("part_number")
+  description     String
+  cost            Decimal  @db.Decimal(12, 4)
+  status          String
+  source          String
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdByUserId String?  @db.Uuid @map("created_by_user_id")
+  updatedByUserId String?  @db.Uuid @map("updated_by_user_id")
+
+  @@index([partNumber])
+  @@map("parts")
+}
+
+model Quote {
+  id              String      @id @default(uuid()) @db.Uuid
+  quoteNumber     String      @map("quote_number")
+  versionGroupId  String      @db.Uuid @map("version_group_id")
+  versionNo       Int         @map("version_no")
+  status          QuoteStatus @default(Draft)
+  quoteDate       DateTime    @db.Date @map("quote_date")
+  customerName    String      @map("customer_name")
+  customerAttn    String?     @map("customer_attn")
+  customerAddress1 String?    @map("customer_address1")
+  customerAddress2 String?    @map("customer_address2")
+  customerCity    String?     @map("customer_city")
+  customerState   String?     @map("customer_state")
+  customerZip     String?     @map("customer_zip")
+  projectName     String?     @map("project_name")
+  estimatorName   String?     @map("estimator_name")
+  estimatorEmail  String?     @map("estimator_email")
+  estimatorPhone  String?     @map("estimator_phone")
+  repCode         String      @default("HOUSE") @map("rep_code")
+  rjaMarkupPct    Decimal     @default(0) @db.Decimal(8, 4) @map("rja_markup_pct")
+  repMarkupPct    Decimal     @default(0) @db.Decimal(8, 4) @map("rep_markup_pct")
+  totalMarkupPct  Decimal     @default(0) @db.Decimal(8, 4) @map("total_markup_pct")
+  subtotalSell    Decimal     @default(0) @db.Decimal(14, 2) @map("subtotal_sell")
+  grandTotal      Decimal     @default(0) @db.Decimal(14, 2) @map("grand_total")
+  notesFooter     String?     @map("notes_footer")
+  createdByUserId String      @db.Uuid @map("created_by_user_id")
+  revisedFromQuoteId String?  @db.Uuid @map("revised_from_quote_id")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  rows            QuoteRow[]
+
+  @@unique([quoteNumber, versionNo])
+  @@index([quoteNumber])
+  @@index([versionGroupId])
+  @@map("quotes")
+}
+
+model QuoteRow {
+  id                 String      @id @default(uuid()) @db.Uuid
+  quoteId            String      @db.Uuid @map("quote_id")
+  lineOrder          Int         @map("line_order")
+  rowType            QuoteRowType @map("row_type")
+  sourcePartId       String?     @db.Uuid @map("source_part_id")
+  partNumber         String?     @map("part_number")
+  qty                Decimal?    @db.Decimal(12, 3)
+  description        String?
+  masterCostSnapshot Decimal?    @db.Decimal(12, 4) @map("master_cost_snapshot")
+  overrideCost       Decimal?    @db.Decimal(12, 4) @map("override_cost")
+  effectiveCost      Decimal?    @db.Decimal(12, 4) @map("effective_cost")
+  sellUnitPrice      Decimal?    @db.Decimal(12, 4) @map("sell_unit_price")
+  lineTotal          Decimal?    @db.Decimal(14, 2) @map("line_total")
+  isPriceOverridden  Boolean     @default(false) @map("is_price_overridden")
+  overrideReason     String?     @map("override_reason")
+  createdByUserId    String?     @db.Uuid @map("created_by_user_id")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
+
+  quote              Quote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([lineOrder])
+  @@map("quote_rows")
+}
+
+model AuditLog {
+  id               String   @id @default(uuid()) @db.Uuid
+  eventType        String   @map("event_type")
+  entityType       String   @map("entity_type")
+  entityId         String?  @db.Uuid @map("entity_id")
+  quoteId          String?  @db.Uuid @map("quote_id")
+  quoteRowId       String?  @db.Uuid @map("quote_row_id")
+  partId           String?  @db.Uuid @map("part_id")
+  partNumber       String?  @map("part_number")
+  userId           String?  @db.Uuid @map("user_id")
+  userNameSnapshot String?  @map("user_name_snapshot")
+  oldValuesJson    Json?    @map("old_values_json")
+  newValuesJson    Json?    @map("new_values_json")
+  reason           String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("audit_log")
+}
+
+model RepMarkupSetting {
+  id                String   @id @default(uuid()) @db.Uuid
+  repCode           String   @unique @map("rep_code")
+  repLabel          String   @map("rep_label")
+  defaultRepMarkupPct Decimal @db.Decimal(8, 4) @map("default_rep_markup_pct")
+  isActive          Boolean  @default(true) @map("is_active")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  updatedByUserId   String?  @db.Uuid @map("updated_by_user_id")
+
+  @@map("rep_markup_settings")
+}
