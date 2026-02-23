@@ -15,7 +15,6 @@ interface QuoteState {
   grandTotal: number;
 }
 
-const PAGE_TITLE = 'Quote Editor MVP';
 const uid = () => crypto.randomUUID();
 
 function toPayload(state: QuoteState): QuoteDto {
@@ -108,7 +107,7 @@ export function QuoteEditorPage() {
 
   return (
     <main style={{ fontFamily: 'Arial, sans-serif', padding: 16 }}>
-      <h1>{PAGE_TITLE}</h1>
+      <h1>Quote Editor MVP</h1>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <input aria-label='Quote Id' value={quote.id} readOnly placeholder='Quote ID' />
         <input aria-label='Quote Number' value={quote.quoteNumber} onChange={(e) => setQuote((p) => ({ ...p, quoteNumber: e.target.value }))} placeholder='Quote #' />
