@@ -1,0 +1,10 @@
+{
+  "name": "quoting-tool",
+  "private": true,
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "build": "npm run -w backend build && npm run -w frontend build",
+    "test": "npm run -w backend test && npm run -w frontend test",
+    "lint": "npm run -w backend lint && npm run -w frontend lint"
+  }
+}
