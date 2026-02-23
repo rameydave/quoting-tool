@@ -110,8 +110,18 @@ export function QuoteEditorPage() {
       <h1>Quote Editor MVP</h1>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <input aria-label='Quote Id' value={quote.id} readOnly placeholder='Quote ID' />
-        <input aria-label='Quote Number' value={quote.quoteNumber} onChange={(e) => setQuote((p) => ({ ...p, quoteNumber: e.target.value }))} placeholder='Quote #' />
-        <input aria-label='Customer Name' value={quote.customerName} onChange={(e) => setQuote((p) => ({ ...p, customerName: e.target.value }))} placeholder='Customer Name' />
+        <input
+          aria-label='Quote Number'
+          value={quote.quoteNumber}
+          onChange={(e) => setQuote((p) => ({ ...p, quoteNumber: e.target.value }))}
+          placeholder='Quote #'
+        />
+        <input
+          aria-label='Customer Name'
+          value={quote.customerName}
+          onChange={(e) => setQuote((p) => ({ ...p, customerName: e.target.value }))}
+          placeholder='Customer Name'
+        />
         <button onClick={onSave}>Save</button>
         <button onClick={onRevise}>Save Revision</button>
         <input aria-label='Load Quote Id' value={loadId} onChange={(e) => setLoadId(e.target.value)} placeholder='Quote ID to load' />
